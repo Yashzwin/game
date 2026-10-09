@@ -82,6 +82,6 @@ export const useStore = create((set, get) => ({
   setHistoryOpen: (o) => set({ historyOpen: o }),
 
   // ---- Model settings ----
-  selectedModel: 'cohere/north-mini-code',
+  selectedModel: 'cohere/north-mini-code:free',
   setSelectedModel: (m) => set({ selectedModel: m }),
 }));

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { generateGame, iterateGame } from '../services/gameBuilder.js';
-import { chat, analyzeImage, MODEL_INFO, MODELS } from '../services/openrouter.js';
+import { chat, analyzeImage, MODEL_INFO, MODELS, fetchFreeModels } from '../services/openrouter.js';
 import { wss, clients } from '../index.js';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -11,10 +11,25 @@ router.get('/models', (req, res) => {
   res.json({ models: MODEL_INFO, defaults: MODELS });
 });
 
+// Live list of free models straight from OpenRouter
+router.get('/models-live', async (req, res) => {
+  try {
+    const models = await fetchFreeModels();
+    res.json({ models });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Generate a new game — uses WebSocket for streaming
 router.post('/generate', async (req, res) => {
   const { prompt, clientId, model, conversationHistory } = req.body;
   if (!prompt) return res.status(400).json({ error: 'prompt is required' });
+  if (!process.env.OPENROUTER_API_KEY) {
+    return res.status(400).json({
+      error: 'No OpenRouter API key configured. Add OPENROUTER_API_KEY to .env and restart the server.',
+    });
+  }
 
   const gameId = uuidv4();
   const ws = clients.get(clientId);
@@ -31,6 +46,9 @@ router.post('/iterate/:gameId', async (req, res) => {
   const { gameId } = req.params;
   const { instruction, clientId, model } = req.body;
   if (!instruction) return res.status(400).json({ error: 'instruction is required' });
+  if (!process.env.OPENROUTER_API_KEY) {
+    return res.status(400).json({ error: 'No OpenRouter API key configured. Add it to .env and restart.' });
+  }
 
   const ws = clients.get(clientId);
   iterateGame({ gameId, instruction, model, ws })

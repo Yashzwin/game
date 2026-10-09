@@ -4,6 +4,7 @@ const api = axios.create({ baseURL: '/api' });
 
 export const aiApi = {
   getModels: () => api.get('/ai/models').then((r) => r.data),
+  getModelsLive: () => api.get('/ai/models-live').then((r) => r.data),
   generate: (payload) => api.post('/ai/generate', payload).then((r) => r.data),
   iterate: (gameId, payload) => api.post(`/ai/iterate/${gameId}`, payload).then((r) => r.data),
   chat: (payload) => api.post('/ai/chat', payload).then((r) => r.data),

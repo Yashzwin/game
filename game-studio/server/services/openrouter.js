@@ -2,50 +2,67 @@ import axios from 'axios';
 
 const OPENROUTER_BASE = 'https://openrouter.ai/api/v1';
 
-// Model roster — best free models for each task
+// Model roster — best free models for each task (verified OpenRouter IDs)
 export const MODELS = {
-  // Primary code gen: Cohere North Mini Code — fastest code model
-  codePrimary: 'cohere/north-mini-code',
-  // Heavy logic fallback: Nemotron Ultra (huge but slow)
-  codeHeavy: 'nvidia/nemotron-3-ultra',
-  // Fast chat: Poolside Laguna — code-focused
-  chatFast: 'poolside/laguna-xs-2.1',
-  // Vision: Gemma 4 31B (multimodal)
-  vision: 'google/gemma-4-31b-it',
-  // Content safety check
-  safety: 'nvidia/nemotron-3.5-content-safety',
+  codePrimary: 'cohere/north-mini-code:free',
+  codeHeavy: 'nvidia/nemotron-3-ultra-550b-a55b:free',
+  chatFast: 'poolside/laguna-xs-2.1:free',
+  vision: 'google/gemma-4-31b-it:free',
+  safety: 'nvidia/nemotron-3.5-content-safety:free',
 };
 
 export const MODEL_INFO = {
-  'cohere/north-mini-code': {
-    name: 'Cohere: North Mini Code',
-    params: '157B',
-    speed: '83 t/s',
-    specialty: 'Code generation',
-    badge: '⚡ Primary',
+  'cohere/north-mini-code:free': {
+    name: 'Cohere: North Mini Code', params: '157B', context: '256K',
+    specialty: 'Code generation', badge: 'Primary', recommended: true,
   },
-  'nvidia/nemotron-3-ultra': {
-    name: 'NVIDIA: Nemotron Ultra',
-    params: '6.91T',
-    speed: '23 t/s',
-    specialty: 'Complex reasoning',
-    badge: '🧠 Deep Think',
+  'nvidia/nemotron-3-ultra-550b-a55b:free': {
+    name: 'NVIDIA: Nemotron 3 Ultra', params: '6.9T MoE', context: '1M',
+    specialty: 'Deep reasoning', badge: 'Deep Think',
   },
-  'poolside/laguna-xs-2.1': {
-    name: 'Poolside: Laguna XS 2.1',
-    params: '84.4B',
-    speed: '44 t/s',
-    specialty: 'Code + chat',
-    badge: '🚀 Fast',
+  'poolside/laguna-xs-2.1:free': {
+    name: 'Poolside: Laguna XS 2.1', params: '84B', context: '262K',
+    specialty: 'Code + chat', badge: 'Fast',
   },
-  'google/gemma-4-31b-it': {
-    name: 'Google: Gemma 4 31B',
-    params: '558M MoE',
-    speed: '25 t/s',
-    specialty: 'Multimodal vision',
-    badge: '👁️ Vision',
+  'google/gemma-4-31b-it:free': {
+    name: 'Google: Gemma 4 31B', params: '31B', context: '262K',
+    specialty: 'Multimodal vision', badge: 'Vision', vision: true,
+  },
+  'nvidia/nemotron-3-super-120b-a12b:free': {
+    name: 'NVIDIA: Nemotron 3 Super', params: '120B', context: '262K',
+    specialty: 'Balanced', badge: 'Balanced',
+  },
+  'thinkingmachines/inkling:free': {
+    name: 'Thinking Machines: Inkling', params: 'MoE', context: '1M',
+    specialty: 'Long context', badge: '1M ctx',
+  },
+  'nvidia/nemotron-3.5-lightning:free': {
+    name: 'NVIDIA: Nemotron 3.5 Lightning', params: 'MoE', context: '1M',
+    specialty: 'Fast + long ctx', badge: 'Lightning',
+  },
+  'dots-studio/dots-3-note-preview:free': {
+    name: 'Dots Studio: Dots3-Note', params: 'MoE', context: '512K',
+    specialty: 'General', badge: 'Preview',
   },
 };
+
+/**
+ * Fetch the live list of free models from OpenRouter.
+ */
+export async function fetchFreeModels() {
+  const res = await axios.get(`${OPENROUTER_BASE}/models`, { timeout: 20000 });
+  const models = res.data?.data || [];
+  return models
+    .filter((m) => m.pricing && Number(m.pricing.prompt) === 0 && Number(m.pricing.completion) === 0)
+    .map((m) => ({
+      id: m.id,
+      name: m.name,
+      context: m.context_length,
+      modality: m.architecture?.modality,
+      vision: (m.architecture?.input_modalities || []).includes('image'),
+    }))
+    .sort((a, b) => (b.context || 0) - (a.context || 0));
+}
 
 /**
  * Stream a chat completion from OpenRouter.
