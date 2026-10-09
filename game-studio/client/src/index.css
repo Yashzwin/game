@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --studio-bg: #0a0a0b;
+    --studio-surface: #111114;
+    --studio-panel: #16161a;
+    --studio-border: #2a2a35;
+    --studio-gold: #c9a84c;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply bg-studio-panel border border-studio-border rounded-lg;
+  }
+  .btn-gold {
+    @apply bg-gradient-to-b from-studio-gold to-studio-gold-dim text-black font-medium rounded-md px-4 py-2 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+  .btn-ghost {
+    @apply text-studio-text-dim hover:text-studio-gold hover:bg-studio-gold/10 rounded-md px-3 py-2 transition-all;
+  }
+  .input-studio {
+    @apply bg-studio-surface border border-studio-border rounded-md px-3 py-2 text-studio-text placeholder:text-studio-text-muted focus:outline-none focus:border-studio-gold/50 focus:ring-1 focus:ring-studio-gold/30 transition-all;
+  }
+  .gold-divider {
+    @apply h-px bg-gradient-to-r from-transparent via-studio-gold/30 to-transparent;
+  }
+  .glow-gold {
+    box-shadow: 0 0 20px rgba(201, 168, 76, 0.15);
+  }
+}
+
+/* Film grain texture overlay */
+.film-grain::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.thinking-shimmer {
+  background: linear-gradient(90deg, #4a4845 25%, #c9a84c 50%, #4a4845 75%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 2s infinite linear;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Terminal styling */
+.xterm .xterm-viewport { background-color: transparent !important; }
