@@ -278,6 +278,51 @@ editor, and terminal before generating anything.
 
 ---
 
+## 🆘 Troubleshooting
+
+**`npm error enoent Could not read package.json`**
+You're in the wrong folder. `npm` must be run from the folder that contains `package.json`. Check
+with `dir` (Windows) or `ls` (macOS/Linux) — you should see `package.json`, `server`, and `client`.
+If you don't, move into the right folder:
+
+```powershell
+cd C:\Users\<you>\Documents\game      # the folder containing package.json
+dir                                   # confirm package.json is listed
+npm run install:all
+```
+
+**`'npm' is not recognized`**
+Node.js isn't installed, or the terminal was opened before you installed it. Install the LTS build
+from **https://nodejs.org**, then **close and reopen** the terminal.
+
+**`Error: listen EADDRINUSE: address already in use :::3001`**
+The studio is already running in another terminal, or another app uses port 3001. Stop the other
+process, or use a different port:
+
+```powershell
+$env:PORT=3002; npm start      # PowerShell
+PORT=3002 npm start            # macOS / Linux
+```
+
+**`npm run dev` starts but the page is blank**
+Check you opened the right URL — **http://localhost:5173** for `npm run dev`, or
+**http://localhost:3001** for `npm run build && npm start`.
+
+**Games won't generate — "No API key configured"**
+Open **Settings** in the studio, paste your key, then hit **Test Connection**. If the test fails the
+message tells you exactly why (bad key, wrong base URL, no credits). No key yet? Turn on **Demo
+Mode** in the same panel.
+
+**Changing my key or base URL later**
+Just open **Settings** again — everything is editable there, no files to touch. It's saved to
+`server/config.json` (git-ignored, because it holds your key).
+
+**Reset everything**
+Delete `server/config.json` (saved settings) and the `server/games/` folder (generated games).
+Nothing else is persisted.
+
+---
+
 ## 📄 License
 
 MIT
