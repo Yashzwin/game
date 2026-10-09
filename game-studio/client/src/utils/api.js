@@ -2,6 +2,13 @@ import axios from 'axios';
 
 const api = axios.create({ baseURL: '/api' });
 
+export const configApi = {
+  get: () => api.get('/config').then((r) => r.data),
+  save: (payload) => api.post('/config', payload).then((r) => r.data),
+  test: () => api.post('/config/test').then((r) => r.data),
+  clearKey: () => api.delete('/config/key').then((r) => r.data),
+};
+
 export const aiApi = {
   getModels: () => api.get('/ai/models').then((r) => r.data),
   getModelsLive: () => api.get('/ai/models-live').then((r) => r.data),

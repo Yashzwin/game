@@ -1,5 +1,6 @@
 import React from 'react';
-import { Film, Sparkles, Gamepad2, Eye, Code2, TerminalSquare, X } from 'lucide-react';
+import { Film, Sparkles, Gamepad2, Eye, Code2, TerminalSquare, X, KeyRound } from 'lucide-react';
+import { useStore } from '../store/useStore';
 
 const FEATURES = [
   { icon: Sparkles, title: 'Agentic AI Director', desc: 'Describe a game — the AI plans, designs, and writes every file.' },
@@ -10,6 +11,8 @@ const FEATURES = [
 ];
 
 export default function WelcomeOverlay({ onDismiss }) {
+  const { config, setSettingsOpen } = useStore();
+  const needsSetup = !config.hasKey && !config.mock;
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
       <div className="relative w-full max-w-2xl bg-studio-surface border border-studio-gold/25 rounded-2xl overflow-hidden glow-gold animate-slide-up">
@@ -52,10 +55,25 @@ export default function WelcomeOverlay({ onDismiss }) {
             })}
           </div>
 
-          <button onClick={onDismiss} className="btn-gold w-full flex items-center justify-center gap-2">
-            <Sparkles className="w-4 h-4" />
-            Start Creating
-          </button>
+          {needsSetup && (
+            <div className="mb-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-studio-gold/10 border border-studio-gold/25 text-[11px] text-studio-gold-dim">
+              <KeyRound className="w-3.5 h-3.5 shrink-0" />
+              No API key yet — add one in Settings (or enable Demo Mode).
+            </div>
+          )}
+          <div className="flex gap-2">
+            <button onClick={onDismiss} className="btn-gold flex-1 flex items-center justify-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              Start Creating
+            </button>
+            {needsSetup && (
+              <button onClick={() => { onDismiss(); setSettingsOpen(true); }}
+                className="flex items-center justify-center gap-2 px-4 rounded-md border border-studio-gold/40 text-studio-gold text-xs hover:bg-studio-gold/10 transition-all">
+                <KeyRound className="w-4 h-4" />
+                Set API Key
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 import { useWebSocket } from './hooks/useWebSocket';
 import { useStore } from './store/useStore';
-import { gamesApi } from './utils/api';
+import { gamesApi, configApi } from './utils/api';
 
 import TopBar from './components/TopBar';
 import ChatPanel from './components/ChatPanel';
@@ -10,10 +10,11 @@ import StudioPanel from './components/StudioPanel';
 import HistoryDrawer from './components/HistoryDrawer';
 import SettingsModal from './components/SettingsModal';
 import WelcomeOverlay from './components/WelcomeOverlay';
+import SetupBanner from './components/SetupBanner';
 
 export default function App() {
   useWebSocket();
-  const { games, setGames, currentGame } = useStore();
+  const { games, setGames, currentGame, setConfig } = useStore();
   const [showWelcome, setShowWelcome] = useState(true);
 
   const loadGames = async () => {
@@ -26,6 +27,8 @@ export default function App() {
   };
 
   useEffect(() => {
+    // Load saved connection settings (API key / base URL) from the server
+    configApi.get().then(setConfig).catch(() => {});
     loadGames();
     const handler = () => loadGames();
     window.addEventListener('game-created', handler);
@@ -35,6 +38,8 @@ export default function App() {
   return (
     <div className="h-screen w-screen flex flex-col bg-studio-bg film-grain overflow-hidden">
       <TopBar />
+
+      <SetupBanner />
 
       <div className="flex-1 overflow-hidden">
         <PanelGroup direction="horizontal" autoSaveId="studio-layout">

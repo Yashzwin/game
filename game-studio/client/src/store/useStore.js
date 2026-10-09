@@ -84,4 +84,13 @@ export const useStore = create((set, get) => ({
   // ---- Model settings ----
   selectedModel: 'cohere/north-mini-code:free',
   setSelectedModel: (m) => set({ selectedModel: m }),
+
+  // ---- Runtime config (API key / base URL) ----
+  config: { hasKey: false, apiKeyMasked: '', baseUrl: 'https://openrouter.ai/api/v1', mock: false },
+  configLoaded: false,
+  setConfig: (c) => set({ config: c, configLoaded: true }),
+  needsSetup: () => {
+    const c = get().config;
+    return !c.hasKey && !c.mock;
+  },
 }));

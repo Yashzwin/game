@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { generateGame, iterateGame } from '../services/gameBuilder.js';
 import { chat, analyzeImage, MODEL_INFO, MODELS, fetchFreeModels } from '../services/openrouter.js';
-import { wss, clients } from '../index.js';
+import { getConfig } from '../services/config.js';
+import { getClient } from '../services/hub.js';
 import { v4 as uuidv4 } from 'uuid';
 
 const router = Router();
@@ -25,14 +26,15 @@ router.get('/models-live', async (req, res) => {
 router.post('/generate', async (req, res) => {
   const { prompt, clientId, model, conversationHistory } = req.body;
   if (!prompt) return res.status(400).json({ error: 'prompt is required' });
-  if (!process.env.OPENROUTER_API_KEY && process.env.MOCK_AI !== '1') {
+  const cfg = getConfig();
+  if (!cfg.apiKey && !cfg.mock) {
     return res.status(400).json({
-      error: 'No OpenRouter API key configured. Add OPENROUTER_API_KEY to .env and restart the server.',
+      error: 'No API key configured. Open Settings in the studio and paste your OpenRouter API key.',
     });
   }
 
   const gameId = uuidv4();
-  const ws = clients.get(clientId);
+  const ws = getClient(clientId);
 
   // Start async generation
   generateGame({ prompt, gameId, model, conversationHistory: conversationHistory || [], ws })
@@ -46,11 +48,13 @@ router.post('/iterate/:gameId', async (req, res) => {
   const { gameId } = req.params;
   const { instruction, clientId, model } = req.body;
   if (!instruction) return res.status(400).json({ error: 'instruction is required' });
-  if (!process.env.OPENROUTER_API_KEY && process.env.MOCK_AI !== '1') {
-    return res.status(400).json({ error: 'No OpenRouter API key configured. Add it to .env and restart.' });
+null
+  const cfg = getConfig();
+  if (!cfg.apiKey && !cfg.mock) {
+    return res.status(400).json({ error: 'No API key configured. Add it in Settings.' });
   }
 
-  const ws = clients.get(clientId);
+  const ws = getClient(clientId);
   iterateGame({ gameId, instruction, model, ws })
     .catch((err) => console.error('[Iterate] Error:', err.message));
 
@@ -81,15 +85,16 @@ router.post('/vision', async (req, res) => {
   }
 });
 
-// Test API key
+// Test API key (legacy alias — prefer POST /api/config/test)
 router.get('/test-key', async (req, res) => {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) return res.json({ valid: false, message: 'No API key set' });
+  const cfg = getConfig();
+  if (cfg.mock) return res.json({ valid: true, mock: true, message: 'Demo mode is ON.' });
+  if (!cfg.apiKey) return res.json({ valid: false, message: 'No API key set. Add it in Settings.' });
   try {
     await chat({ messages: [{ role: 'user', content: 'Say "OK" in one word.' }], model: MODELS.chatFast });
     res.json({ valid: true, message: 'API key is working!' });
   } catch (err) {
-    res.json({ valid: false, message: err.message });
+    res.json({ valid: false, message: err.response?.data?.error?.message || err.message });
   }
 });
 

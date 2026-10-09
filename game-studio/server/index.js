@@ -11,7 +11,10 @@ import { randomUUID } from 'crypto';
 import aiRoutes from './routes/ai.js';
 import gamesRoutes from './routes/games.js';
 import filesRoutes from './routes/files.js';
+import configRoutes from './routes/config.js';
 import { startSession, writeToSession, runCommand, killSession } from './services/terminal.js';
+import { getConfig } from './services/config.js';
+import { register, unregister } from './services/hub.js';
 
 dotenv.config();
 
@@ -29,6 +32,7 @@ app.use('/games', express.static(GAMES_DIR));
 app.use('/api/ai', aiRoutes);
 app.use('/api/games', gamesRoutes);
 app.use('/api/files', filesRoutes);
+app.use('/api/config', configRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', version: '1.0.0', gamesDir: GAMES_DIR });
@@ -47,11 +51,10 @@ if (existsSync(CLIENT_DIST)) {
 
 const server = createServer(app);
 const wss = new WebSocketServer({ server });
-const clients = new Map();
 
 wss.on('connection', (ws) => {
   const id = randomUUID();
-  clients.set(id, ws);
+  register(id, ws);
   console.log(`[WS] Client connected: ${id}`);
 
   ws.on('message', async (raw) => {
@@ -83,18 +86,22 @@ wss.on('connection', (ws) => {
 
   ws.on('close', () => {
     killSession(id);
-    clients.delete(id);
+    unregister(id);
     console.log(`[WS] Client disconnected: ${id}`);
   });
 
   ws.send(JSON.stringify({ type: 'connected', id }));
 });
 
-export { wss, clients, GAMES_DIR };
+export { wss, GAMES_DIR };
 
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`\n🎬 AI Game Studio Server running on http://localhost:${PORT}`);
   console.log(`📁 Games directory: ${GAMES_DIR}`);
-  console.log(`🔑 OpenRouter key: ${process.env.OPENROUTER_API_KEY ? '✅ set' : '❌ missing — add to .env'}\n`);
+  const c = getConfig();
+  const mode = c.mock ? '🎭 demo (MOCK_AI)' : c.apiKey ? '✅ set' : '❌ not set — open Settings in the web UI';
+  console.log(`🔑 API key: ${mode}`);
+  console.log(`🌐 Base URL: ${c.baseUrl}`);
+  console.log(`\n👉 Open http://localhost:${PORT} and configure everything in Settings.\n`);
 });

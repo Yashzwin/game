@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { mockStreamChat } from './mockAI.js';
+import { getConfig } from './config.js';
 
-const OPENROUTER_BASE = 'https://openrouter.ai/api/v1';
+
 
 // Model roster — best free models for each task (verified OpenRouter IDs)
 export const MODELS = {
@@ -51,7 +52,8 @@ export const MODEL_INFO = {
  * Fetch the live list of free models from OpenRouter.
  */
 export async function fetchFreeModels() {
-  const res = await axios.get(`${OPENROUTER_BASE}/models`, { timeout: 20000 });
+  const cfg = getConfig();
+  const res = await axios.get(`${cfg.baseUrl}/models`, { timeout: 20000 });
   const models = res.data?.data || [];
   return models
     .filter((m) => m.pricing && Number(m.pricing.prompt) === 0 && Number(m.pricing.completion) === 0)
@@ -70,12 +72,16 @@ export async function fetchFreeModels() {
  * Calls `onChunk(text)` for each streamed token, returns full text.
  */
 export async function streamChat({ messages, model, onChunk, onThinking, systemPrompt }) {
-  if (process.env.MOCK_AI === '1') {
+  const cfg = getConfig();
+
+  if (cfg.mock) {
     return mockStreamChat({ messages, onChunk, onThinking });
   }
 
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) throw new Error('OPENROUTER_API_KEY not set in .env');
+  const apiKey = cfg.apiKey;
+  if (!apiKey) {
+    throw new Error('No API key set. Open Settings in the studio and paste your OpenRouter API key.');
+  }
 
   const chosenModel = model || MODELS.codePrimary;
 
@@ -90,7 +96,7 @@ export async function streamChat({ messages, model, onChunk, onThinking, systemP
     max_tokens: 16000,
   };
 
-  const response = await axios.post(`${OPENROUTER_BASE}/chat/completions`, body, {
+  const response = await axios.post(`${cfg.baseUrl}/chat/completions`, body, {
     headers: {
       Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
@@ -137,11 +143,12 @@ export async function streamChat({ messages, model, onChunk, onThinking, systemP
  * Non-streaming chat (for quick responses)
  */
 export async function chat({ messages, model, systemPrompt }) {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) throw new Error('OPENROUTER_API_KEY not set in .env');
+  const cfg = getConfig();
+  const apiKey = cfg.apiKey;
+  if (!apiKey) throw new Error('No API key set. Add it in Settings.');
 
   const res = await axios.post(
-    `${OPENROUTER_BASE}/chat/completions`,
+    `${cfg.baseUrl}/chat/completions`,
     {
       model: model || MODELS.chatFast,
       messages: [
@@ -169,15 +176,16 @@ export async function chat({ messages, model, systemPrompt }) {
  * Vision analysis — send an image (base64 or URL) + prompt
  */
 export async function analyzeImage({ imageUrl, imageBase64, prompt }) {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) throw new Error('OPENROUTER_API_KEY not set in .env');
+  const cfg = getConfig();
+  const apiKey = cfg.apiKey;
+  if (!apiKey) throw new Error('No API key set. Add it in Settings.');
 
   const imageContent = imageBase64
     ? { type: 'image_url', image_url: { url: `data:image/png;base64,${imageBase64}` } }
     : { type: 'image_url', image_url: { url: imageUrl } };
 
   const res = await axios.post(
-    `${OPENROUTER_BASE}/chat/completions`,
+    `${cfg.baseUrl}/chat/completions`,
     {
       model: MODELS.vision,
       messages: [
