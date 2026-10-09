@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../store/useStore';
-import { Monitor, Smartphone, Square, Maximize2, Loader2, Gamepad2, Eye, Scan } from 'lucide-react';
+import { Monitor, Smartphone, Square, Loader2, Gamepad2, Eye } from 'lucide-react';
 import clsx from 'clsx';
 import VisionAnalyzer from './VisionAnalyzer';
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useStore } from '../store/useStore';
 import { gamesApi } from '../utils/api';
-import { X, Gamepad2, Trash2, Clock, Play, Layers } from 'lucide-react';
+import { X, Gamepad2, Trash2, Clock, Layers } from 'lucide-react';
 
 export default function HistoryDrawer() {
   const { historyOpen, setHistoryOpen, games, setGames, setCurrentGame, setPreviewUrl, setActiveTab, setFiles, setActiveFile } = useStore();

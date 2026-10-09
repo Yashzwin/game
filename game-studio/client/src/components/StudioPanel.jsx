@@ -1,6 +1,6 @@
 import React from 'react';
 import { useStore } from '../store/useStore';
-import { Play, Code2, TerminalSquare, RefreshCw, ExternalLink, Download, Gamepad2 } from 'lucide-react';
+import { Play, Code2, TerminalSquare, RefreshCw, ExternalLink, Gamepad2 } from 'lucide-react';
 import PreviewFrame from './PreviewFrame';
 import CodeWorkspace from './CodeWorkspace';
 import TerminalPanel from './TerminalPanel';

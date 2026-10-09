@@ -47,14 +47,18 @@ export default function VisionAnalyzer({ onClose }) {
       const codeContext = files
         .map((f) => `--- ${f.path} ---\n${f.content.slice(0, 4000)}`)
         .join('\n\n');
-      const { analysis } = await aiApi.vision({
-        prompt: `You are a senior game developer. Review this game code:
+      const { response } = await aiApi.chat({
+        model: useStore.getState().selectedModel,
+        messages: [{
+          role: 'user',
+          content: `You are a senior game developer. Review this game code:
 
 ${codeContext}
 
-Provide: 1) Architecture 2) Gameplay quality 3) Bugs/Risks 4) 3-5 improvements`,
+Provide: 1) Architecture 2) Gameplay quality 3) Bugs/Risks 4) 3-5 specific improvements.`,
+        }],
       });
-      setAnalysis(analysis);
+      setAnalysis(response);
     } catch (e) {
       setAnalysis(`❌ ${e.message}`);
     }

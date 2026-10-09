@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { aiApi } from '../utils/api';
-import { X, Settings as SettingsIcon, Key, Cpu, Check, Loader2, Zap, Eye, Brain, AlertCircle } from 'lucide-react';
+import { X, Settings as SettingsIcon, Key, Cpu, Check, Loader2, Zap, Brain, AlertCircle } from 'lucide-react';
 import clsx from 'clsx';
 
 export default function SettingsModal() {

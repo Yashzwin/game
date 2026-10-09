@@ -1,5 +1,5 @@
 import React from 'react';
-import { Film, Settings, History, Github, Sparkles } from 'lucide-react';
+import { Film, Settings, History, Sparkles } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
 export default function TopBar() {
