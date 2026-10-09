@@ -58,7 +58,13 @@ export function useWebSocket() {
           setGenerating(true);
           resetStreaming();
           setGenerationStatus(msg.message || 'Generating...');
-          addMessage({ role: 'assistant', content: msg.message, kind: 'status', streaming: true });
+          // Update the existing placeholder message instead of adding a duplicate
+          updateLastMessage({
+            role: 'assistant',
+            content: msg.message || 'Generating...',
+            kind: 'status',
+            streaming: true,
+          });
           break;
 
         case 'thinking':
