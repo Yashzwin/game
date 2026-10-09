@@ -6,6 +6,12 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import dotenv from 'dotenv';
 import { existsSync, mkdirSync } from 'fs';
+import { randomUUID } from 'crypto';
+
+import aiRoutes from './routes/ai.js';
+import gamesRoutes from './routes/games.js';
+import filesRoutes from './routes/files.js';
+import { startSession, writeToSession, runCommand, killSession } from './services/terminal.js';
 
 dotenv.config();
 
@@ -18,48 +24,65 @@ if (!existsSync(GAMES_DIR)) mkdirSync(GAMES_DIR, { recursive: true });
 const app = express();
 app.use(cors({ origin: '*' }));
 app.use(express.json({ limit: '50mb' }));
-
-// Serve generated games statically
 app.use('/games', express.static(GAMES_DIR));
-
-// Routes
-import aiRoutes from './routes/ai.js';
-import gamesRoutes from './routes/games.js';
-import filesRoutes from './routes/files.js';
 
 app.use('/api/ai', aiRoutes);
 app.use('/api/games', gamesRoutes);
 app.use('/api/files', filesRoutes);
 
-// Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', version: '1.0.0', gamesDir: GAMES_DIR });
 });
 
-// HTTP + WebSocket server
+// Serve built client (production) — same-origin previews
+const CLIENT_DIST = join(__dirname, '../client/dist');
+if (existsSync(CLIENT_DIST)) {
+  app.use(express.static(CLIENT_DIST));
+  app.get('*', (req, res) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/games')) return res.status(404).end();
+    res.sendFile(join(CLIENT_DIST, 'index.html'));
+  });
+  console.log('📦 Serving built client from', CLIENT_DIST);
+}
+
 const server = createServer(app);
 const wss = new WebSocketServer({ server });
-
-// WebSocket for terminal + streaming
 const clients = new Map();
 
-wss.on('connection', (ws, req) => {
-  const id = crypto.randomUUID();
+wss.on('connection', (ws) => {
+  const id = randomUUID();
   clients.set(id, ws);
   console.log(`[WS] Client connected: ${id}`);
 
   ws.on('message', async (raw) => {
     try {
       const msg = JSON.parse(raw.toString());
-      if (msg.type === 'ping') {
-        ws.send(JSON.stringify({ type: 'pong' }));
+      switch (msg.type) {
+        case 'ping':
+          ws.send(JSON.stringify({ type: 'pong' }));
+          break;
+        case 'terminal_start':
+          startSession(id, ws);
+          break;
+        case 'terminal_input':
+          writeToSession(id, msg.data);
+          break;
+        case 'terminal_command':
+          runCommand(id, ws, msg.command);
+          break;
+        case 'terminal_kill':
+          killSession(id);
+          break;
+        default:
+          break;
       }
     } catch (e) {
-      console.error('[WS] message error', e);
+      console.error('[WS] message error', e.message);
     }
   });
 
   ws.on('close', () => {
+    killSession(id);
     clients.delete(id);
     console.log(`[WS] Client disconnected: ${id}`);
   });
@@ -67,8 +90,7 @@ wss.on('connection', (ws, req) => {
   ws.send(JSON.stringify({ type: 'connected', id }));
 });
 
-// Export wss for use in routes
-export { wss, clients };
+export { wss, clients, GAMES_DIR };
 
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {

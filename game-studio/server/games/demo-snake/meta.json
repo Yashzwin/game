@@ -1,0 +1,14 @@
+{
+  "id": "demo-snake",
+  "title": "Neon Snake (Demo)",
+  "description": "A polished neon snake game bundled with the studio. Eat the glowing orbs, grow longer, and don't crash. Shows off the preview, file tree, editor, and terminal.",
+  "genre": "arcade",
+  "gameType": "2d",
+  "engine": "vanilla",
+  "controls": "Arrow keys or WASD to move, Space to restart",
+  "features": ["Neon glow rendering", "Progressive speed", "Persistent high score", "Smooth animations"],
+  "thinking": "Bundled demo to showcase the studio before generating your own games.",
+  "mainFile": "index.html",
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "files": ["index.html", "game.js"]
+}

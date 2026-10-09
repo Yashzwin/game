@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Neon Snake — Demo</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; background: #06060a; overflow: hidden; font-family: system-ui, sans-serif; }
+  body { display: flex; align-items: center; justify-content: center; }
+  #wrap { position: relative; }
+  canvas { display: block; border-radius: 10px; box-shadow: 0 0 60px rgba(201,168,76,.18), 0 0 0 1px #22222c; background: #0a0a10; }
+  #hud { position: absolute; top: 10px; left: 14px; right: 14px; display: flex; justify-content: space-between;
+         color: #c9a84c; font-size: 14px; letter-spacing: .12em; text-transform: uppercase; pointer-events: none; }
+  #over { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center;
+          background: rgba(6,6,10,.82); border-radius: 10px; color: #e8e6e0; gap: 10px; }
+  #over h1 { font-size: 28px; color: #c9a84c; letter-spacing: .06em; }
+  #over p { font-size: 13px; color: #8a8880; }
+  #over button { margin-top: 8px; padding: 9px 22px; border: none; border-radius: 6px; cursor: pointer;
+                 background: linear-gradient(#e8c97a,#c9a84c); color: #111; font-weight: 600; letter-spacing: .04em; }
+</style>
+</head>
+<body>
+  <div id="wrap">
+    <canvas id="game" width="640" height="640"></canvas>
+    <div id="hud"><span>Score <b id="score">0</b></span><span>Best <b id="best">0</b></span></div>
+    <div id="over">
+      <h1>GAME OVER</h1>
+      <p id="finalscore">Score: 0</p>
+      <button onclick="resetGame()">Play Again</button>
+    </div>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>

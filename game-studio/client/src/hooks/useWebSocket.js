@@ -15,8 +15,9 @@ export function useWebSocket() {
 
   const connect = useCallback(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    // In dev, Vite proxies /api but WS goes direct to backend
-    const wsUrl = `${protocol}//${window.location.hostname}:3001`;
+    // Dev: Vite serves on 5173, backend WS is on 3001. Prod: same origin.
+    const host = window.location.port === '5173' ? `${window.location.hostname}:3001` : window.location.host;
+    const wsUrl = `${protocol}//${host}`;
 
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;

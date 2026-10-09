@@ -3,5 +3,10 @@ dist/
 .env
 .DS_Store
 *.log
-server/games/
+
+# Generated games (keep the bundled demo)
+server/games/*
+!server/games/demo-snake/
+!server/games/demo-snake/**
+
 client/dist/
