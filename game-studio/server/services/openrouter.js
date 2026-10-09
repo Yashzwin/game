@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { mockStreamChat } from './mockAI.js';
 
 const OPENROUTER_BASE = 'https://openrouter.ai/api/v1';
 
@@ -69,6 +70,10 @@ export async function fetchFreeModels() {
  * Calls `onChunk(text)` for each streamed token, returns full text.
  */
 export async function streamChat({ messages, model, onChunk, onThinking, systemPrompt }) {
+  if (process.env.MOCK_AI === '1') {
+    return mockStreamChat({ messages, onChunk, onThinking });
+  }
+
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) throw new Error('OPENROUTER_API_KEY not set in .env');
 

@@ -25,7 +25,7 @@ router.get('/models-live', async (req, res) => {
 router.post('/generate', async (req, res) => {
   const { prompt, clientId, model, conversationHistory } = req.body;
   if (!prompt) return res.status(400).json({ error: 'prompt is required' });
-  if (!process.env.OPENROUTER_API_KEY) {
+  if (!process.env.OPENROUTER_API_KEY && process.env.MOCK_AI !== '1') {
     return res.status(400).json({
       error: 'No OpenRouter API key configured. Add OPENROUTER_API_KEY to .env and restart the server.',
     });
@@ -46,7 +46,7 @@ router.post('/iterate/:gameId', async (req, res) => {
   const { gameId } = req.params;
   const { instruction, clientId, model } = req.body;
   if (!instruction) return res.status(400).json({ error: 'instruction is required' });
-  if (!process.env.OPENROUTER_API_KEY) {
+  if (!process.env.OPENROUTER_API_KEY && process.env.MOCK_AI !== '1') {
     return res.status(400).json({ error: 'No OpenRouter API key configured. Add it to .env and restart.' });
   }
 

@@ -76,6 +76,21 @@ npm start          # serves UI + API + games on http://localhost:3001
 
 ---
 
+## 🎭 Try it without an API key (Demo Mode)
+
+Set `MOCK_AI=1` in `.env` and restart. The studio will generate **canned 2D and 3D demo games**
+(Aurora Runner / Orbital Drift) so you can explore the full UI — chat streaming, file tree, editor,
+preview, terminal, and vision — before adding a real key.
+
+```bash
+# .env
+MOCK_AI=1
+```
+
+> Demo mode never calls OpenRouter. Set `MOCK_AI=0` to use real models.
+
+---
+
 ## 🧠 Models
 
 The studio ships with curated free models and can fetch **all live free models** from OpenRouter
