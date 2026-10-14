@@ -24,6 +24,30 @@ Powered by **OpenRouter** free models.
 
 ---
 
+## 🤖 The Agent (new)
+
+Alongside the one-shot generator there is now a real **agent loop** — the same
+architecture this assistant uses: *plan → call a tool → observe → repeat →
+verify → complete*.
+
+- **Virtual file system** — every file the agent writes lives in memory, in a
+  path-jailed sandbox. Nothing touches your disk, and there is no GitHub.
+- **Tool calling** — `list_files`, `read_file`, `write_file`, `delete_file`,
+  `search_files`, `ask_followup_question`, `attempt_completion`.
+- **Provider-agnostic** — OpenRouter, Poolside and Hugging Face (all
+  OpenAI-compatible) behind one client.
+- **Live preview** — games are served from the virtual FS at `/sandbox/:id/*`
+  and run in the preview iframe.
+
+```bash
+npm test            # 19 tests — no API key needed
+npm run agent:demo  # watch the full loop run with a scripted model
+```
+
+Full walkthrough: **[docs/AGENT_ARCHITECTURE.md](docs/AGENT_ARCHITECTURE.md)**
+
+---
+
 ## 🚀 Quick Start
 
 > **Everything is configured in the web UI — you never need to edit a file or set environment variables.**

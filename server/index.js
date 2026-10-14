@@ -12,6 +12,8 @@ import aiRoutes from './routes/ai.js';
 import gamesRoutes from './routes/games.js';
 import filesRoutes from './routes/files.js';
 import configRoutes from './routes/config.js';
+import agentRoutes from './routes/agent.js';
+import { getWorkspace } from './agent/store.js';
 import { startSession, writeToSession, runCommand, killSession } from './services/terminal.js';
 import { getConfig } from './services/config.js';
 import { register, unregister } from './services/hub.js';
@@ -33,6 +35,45 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/games', gamesRoutes);
 app.use('/api/files', filesRoutes);
 app.use('/api/config', configRoutes);
+app.use('/api/agent', agentRoutes);
+
+// ── The web sandbox: serve the agent's VIRTUAL file system ─────────────────
+// Files are read from memory, never from disk. This is what the preview
+// iframe loads, so a generated game runs with zero host footprint.
+const SANDBOX_MIME = {
+  html: 'text/html; charset=utf-8',
+  htm: 'text/html; charset=utf-8',
+  js: 'text/javascript; charset=utf-8',
+  mjs: 'text/javascript; charset=utf-8',
+  css: 'text/css; charset=utf-8',
+  json: 'application/json; charset=utf-8',
+  svg: 'image/svg+xml',
+  md: 'text/markdown; charset=utf-8',
+  txt: 'text/plain; charset=utf-8',
+};
+
+app.get('/sandbox/:workspaceId', (req, res) => {
+  const workspace = getWorkspace(req.params.workspaceId);
+  if (!workspace) return res.status(404).send('Workspace not found');
+  try {
+    res.type('text/html; charset=utf-8').send(workspace.vfs.read('index.html'));
+  } catch (e) {
+    res.status(404).send(e.message);
+  }
+});
+
+app.get('/sandbox/:workspaceId/*', (req, res) => {
+  const workspace = getWorkspace(req.params.workspaceId);
+  if (!workspace) return res.status(404).send('Workspace not found');
+  const rel = req.params[0] || 'index.html';
+  try {
+    const content = workspace.vfs.read(rel);
+    const ext = rel.split('.').pop().toLowerCase();
+    res.type(SANDBOX_MIME[ext] || 'text/plain; charset=utf-8').send(content);
+  } catch (e) {
+    res.status(404).send(e.message);
+  }
+});
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', version: '1.0.0', gamesDir: GAMES_DIR });
@@ -43,7 +84,12 @@ const CLIENT_DIST = join(__dirname, '../client/dist');
 if (existsSync(CLIENT_DIST)) {
   app.use(express.static(CLIENT_DIST));
   app.get('*', (req, res) => {
-    if (req.path.startsWith('/api') || req.path.startsWith('/games')) return res.status(404).end();
+    if (
+      req.path.startsWith('/api') ||
+      req.path.startsWith('/games') ||
+      req.path.startsWith('/sandbox')
+    )
+      return res.status(404).end();
     res.sendFile(join(CLIENT_DIST, 'index.html'));
   });
   console.log('📦 Serving built client from', CLIENT_DIST);
